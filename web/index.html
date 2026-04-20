@@ -1,0 +1,1483 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Override the backend URL here after deploying to Render, e.g.:
+       <meta name="api-base-url" content="https://spark-energy-api.onrender.com"> -->
+  <title>Smart Energy Consumption Predictor</title>
+  <style>
+    :root {
+      --bg-0: #070b18;
+      --bg-1: #0f172a;
+      --bg-2: #1e293b;
+      --surface: #ffffff;
+      --surface-alt: #f8fafc;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --text-soft: #64748b;
+      --accent: #3b82f6;
+      --accent-2: #6366f1;
+      --accent-hover: #2563eb;
+      --ring: rgba(99, 102, 241, 0.35);
+      --success-bg-1: #ecfdf5;
+      --success-bg-2: #d1fae5;
+      --success-text: #064e3b;
+      --success-border: #a7f3d0;
+      --error-bg: #fef2f2;
+      --error-text: #991b1b;
+      --error-border: #fecaca;
+      --warn: #f59e0b;
+      --input-border: #cbd5e1;
+      --input-focus: #93c5fd;
+      --shadow-lg: 0 30px 60px -20px rgba(2, 6, 23, 0.55);
+      --shadow-md: 0 12px 30px -12px rgba(2, 6, 23, 0.35);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 15% -10%, rgba(99,102,241,0.35), transparent 60%),
+        radial-gradient(900px 600px at 110% 10%, rgba(59,130,246,0.30), transparent 60%),
+        linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 45%, var(--bg-2) 100%);
+      color: #e2e8f0;
+      line-height: 1.55;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ---------- NAV ---------- */
+    nav.top {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: saturate(180%) blur(12px);
+      background: rgba(7, 11, 24, 0.65);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    }
+    nav.top .inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      color: #e2e8f0;
+    }
+    .brand .logo {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 6px 18px rgba(59,130,246,0.45);
+      font-size: 1rem;
+    }
+    .nav-links { display: flex; gap: 20px; }
+    .nav-links a {
+      color: #cbd5e1; text-decoration: none; font-size: 0.92rem;
+      transition: color 0.2s ease;
+    }
+    .nav-links a:hover { color: #fff; }
+
+    /* ---------- HERO ---------- */
+    header.hero {
+      position: relative;
+      padding: 80px 0 90px;
+      text-align: center;
+    }
+    .hero .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #c7d2fe;
+      background: rgba(99,102,241,0.15);
+      border: 1px solid rgba(99,102,241,0.35);
+      margin-bottom: 22px;
+    }
+    .hero h1 {
+      margin: 0 auto 18px;
+      max-width: 820px;
+      font-size: clamp(2rem, 4.5vw, 3.2rem);
+      line-height: 1.1;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .hero p.lead {
+      margin: 0 auto 32px;
+      max-width: 720px;
+      font-size: 1.08rem;
+      color: #cbd5e1;
+    }
+    .cta-row {
+      display: inline-flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      border: none;
+      border-radius: 12px;
+      padding: 13px 22px;
+      font-size: 0.98rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+    }
+    .btn-primary {
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 10px 26px rgba(59,130,246,0.45);
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 14px 30px rgba(99,102,241,0.55);
+    }
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(0) scale(0.99);
+    }
+    .btn-ghost {
+      color: #e2e8f0;
+      background: rgba(148, 163, 184, 0.08);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+    .btn-ghost:hover { background: rgba(148, 163, 184, 0.15); transform: translateY(-1px); }
+
+    .hero-stats {
+      margin-top: 54px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      max-width: 780px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .stat {
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      border-radius: 14px;
+      padding: 18px;
+      text-align: left;
+      backdrop-filter: blur(6px);
+    }
+    .stat .k { font-size: 1.4rem; font-weight: 800; color: #fff; }
+    .stat .v { font-size: 0.85rem; color: #94a3b8; margin-top: 2px; }
+
+    /* ---------- SECTIONS ---------- */
+    section {
+      padding: 70px 0;
+    }
+    .section-head {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .section-head .eyebrow {
+      color: #a5b4fc;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .section-head h2 {
+      margin: 8px 0 10px;
+      font-size: clamp(1.6rem, 3vw, 2.1rem);
+      color: #f8fafc;
+      letter-spacing: -0.01em;
+    }
+    .section-head p {
+      margin: 0 auto;
+      max-width: 620px;
+      color: #cbd5e1;
+    }
+
+    /* How it works */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+    }
+
+    /* Pipeline flow strip */
+    .pipeline {
+      margin: 10px auto 34px;
+      padding: 14px 18px;
+      max-width: 900px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 10px 14px;
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      color: #cbd5e1;
+      font-size: 0.92rem;
+      letter-spacing: 0.01em;
+      box-shadow: 0 10px 30px -20px rgba(2, 6, 23, 0.6);
+    }
+    .pipeline .node {
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #e2e8f0;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+    }
+    .pipeline .node:hover {
+      background: rgba(99, 102, 241, 0.22);
+      border-color: rgba(99, 102, 241, 0.55);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+    .pipeline .arrow {
+      color: #94a3b8;
+      font-weight: 700;
+      opacity: 0.8;
+    }
+    .step {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 16px;
+      padding: 20px;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .step:hover {
+      transform: translateY(-3px);
+      border-color: rgba(99,102,241,0.45);
+      box-shadow: 0 18px 40px rgba(2,6,23,0.45);
+    }
+    .step .icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, rgba(59,130,246,0.25), rgba(99,102,241,0.25));
+      border: 1px solid rgba(99,102,241,0.35);
+      color: #c7d2fe;
+      font-size: 1.1rem;
+      margin-bottom: 14px;
+    }
+    .step h3 {
+      margin: 0 0 6px;
+      color: #f8fafc;
+      font-size: 1.02rem;
+    }
+    .step p {
+      margin: 0;
+      color: #94a3b8;
+      font-size: 0.92rem;
+    }
+
+    /* Model info */
+    .model-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 24px;
+      align-items: stretch;
+    }
+    .model-card {
+      border-radius: 18px;
+      padding: 28px;
+      background: linear-gradient(135deg, rgba(59,130,246,0.18), rgba(99,102,241,0.12));
+      border: 1px solid rgba(99,102,241,0.35);
+      box-shadow: var(--shadow-md);
+    }
+    .model-card h3 {
+      margin: 0 0 8px;
+      font-size: 1.3rem;
+      color: #f8fafc;
+    }
+    .model-card p { color: #cbd5e1; margin: 0 0 18px; }
+    .model-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      font-size: 0.8rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(99,102,241,0.15);
+      border: 1px solid rgba(99,102,241,0.35);
+      color: #c7d2fe;
+    }
+    .metrics {
+      display: grid;
+      grid-template-rows: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .metric {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 14px;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .metric .label { color: #94a3b8; font-size: 0.88rem; }
+    .metric .value {
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.25rem;
+      letter-spacing: -0.01em;
+    }
+
+    /* Prediction form card */
+    #predict { padding-bottom: 100px; }
+
+    .predict-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      gap: 22px;
+      align-items: start;
+      max-width: 1060px;
+      margin: 0 auto;
+    }
+
+    .form-card {
+      width: 100%;
+      background: var(--surface);
+      color: var(--text);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      padding: 30px;
+      animation: cardIn 0.5s ease both;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-card h2 {
+      margin: 0 0 6px;
+      font-size: 1.45rem;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+    .form-card .desc {
+      margin: 0 0 22px;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .field {
+      position: relative;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 28px 14px 12px;
+      border: 1px solid var(--input-border);
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1.2;
+      outline: none;
+      background: #fff;
+      color: var(--text);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+      appearance: none;
+    }
+
+    /* Hide native number spinner arrows for a cleaner look */
+    .field input[type="number"] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+    .field input[type="number"]::-webkit-outer-spin-button,
+    .field input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .field select {
+      padding: 28px 42px 12px 14px;
+      cursor: pointer;
+      background-color: #fff;
+      background-image:
+        linear-gradient(45deg, transparent 50%, #64748b 50%),
+        linear-gradient(135deg, #64748b 50%, transparent 50%);
+      background-position:
+        calc(100% - 22px) calc(50% + 4px),
+        calc(100% - 16px) calc(50% + 4px);
+      background-size: 6px 6px, 6px 6px;
+      background-repeat: no-repeat;
+    }
+
+    .field select:invalid,
+    .field select.is-placeholder {
+      color: #94a3b8;
+      font-weight: 500;
+    }
+
+    .field select option {
+      color: var(--text);
+      font-weight: 500;
+    }
+    .field select option[disabled] { color: #94a3b8; }
+
+    .field input:hover,
+    .field select:hover { border-color: #94a3b8; }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--input-focus);
+      box-shadow: 0 0 0 4px rgba(147, 197, 253, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .field input.invalid,
+    .field select.invalid {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18);
+    }
+
+    .field label {
+      position: absolute;
+      top: 9px;
+      left: 14px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      pointer-events: none;
+      transition: color 0.2s ease;
+    }
+
+    .field input:focus + label,
+    .field select:focus + label { color: var(--accent-hover); }
+
+    .field .hint {
+      margin-top: 6px;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+    }
+
+    .field.full { grid-column: 1 / -1; }
+
+    .actions {
+      margin-top: 22px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .loader {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2px solid #dbeafe;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    .loader.active { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .reset-btn {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--input-border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+    .reset-btn:hover { background: var(--surface-alt); color: var(--text); border-color: #94a3b8; }
+
+    .message {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      display: none;
+      line-height: 1.5;
+    }
+    .message.visible {
+      display: flex;
+      animation: fadeInUp 0.35s ease both;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.success {
+      background: linear-gradient(135deg, var(--success-bg-1), var(--success-bg-2));
+      color: var(--success-text);
+      border: 1px solid var(--success-border);
+      box-shadow: 0 10px 26px rgba(16, 185, 129, 0.22);
+      padding: 20px;
+      gap: 16px;
+      align-items: center;
+    }
+    .message.success .bolt {
+      font-size: 2.1rem;
+      line-height: 1;
+      filter: drop-shadow(0 2px 6px rgba(234, 179, 8, 0.55));
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.12); }
+    }
+    .result-body { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+    .result-label {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+      opacity: 0.85;
+    }
+    .result-value {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.015em;
+      color: #064e3b;
+    }
+    .result-value .unit {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-left: 6px;
+      opacity: 0.75;
+    }
+    .result-meta {
+      font-size: 0.8rem;
+      color: #065f46;
+      opacity: 0.75;
+      margin-top: 2px;
+    }
+    .result-explain {
+      font-size: 0.85rem;
+      color: #065f46;
+      opacity: 0.9;
+      margin-top: 8px;
+      line-height: 1.5;
+      max-width: 520px;
+    }
+    .result-confidence {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(6, 78, 59, 0.12);
+      border: 1px solid rgba(6, 78, 59, 0.25);
+      color: #065f46;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      width: fit-content;
+    }
+    .result-confidence .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+    }
+
+    .message.error {
+      background: var(--error-bg);
+      color: var(--error-text);
+      border: 1px solid var(--error-border);
+      gap: 10px;
+      align-items: center;
+      font-weight: 500;
+    }
+    .message.error::before { content: "⚠"; font-size: 1.1rem; }
+
+    /* Preset chips */
+    .presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    .preset-chip {
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: var(--text-muted);
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.12s ease;
+    }
+    .preset-chip:hover {
+      background: #eff6ff;
+      color: var(--accent-hover);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .preset-chip:active { transform: translateY(0); }
+    .presets-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      font-weight: 700;
+      margin-right: 4px;
+      align-self: center;
+    }
+
+    /* Regions reference card */
+    .side-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: var(--radius);
+      padding: 22px;
+      color: #e2e8f0;
+      box-shadow: var(--shadow-md);
+      backdrop-filter: blur(6px);
+      animation: cardIn 0.5s ease both;
+    }
+    .side-card h3 {
+      margin: 0 0 4px;
+      font-size: 1.05rem;
+      color: #f8fafc;
+      letter-spacing: -0.005em;
+    }
+    .side-card .side-sub {
+      margin: 0 0 14px;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+    .regions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 360px;
+      overflow-y: auto;
+      padding-right: 4px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(148,163,184,0.35) transparent;
+    }
+    .regions-list::-webkit-scrollbar { width: 6px; }
+    .regions-list::-webkit-scrollbar-thumb {
+      background: rgba(148,163,184,0.35);
+      border-radius: 3px;
+    }
+    .region-row {
+      display: grid;
+      grid-template-columns: 68px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 9px 10px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      transition: background 0.2s ease, border-color 0.2s ease, transform 0.12s ease;
+      cursor: pointer;
+    }
+    .region-row:hover {
+      background: rgba(99, 102, 241, 0.12);
+      border-color: rgba(99, 102, 241, 0.35);
+      transform: translateX(2px);
+    }
+    .region-row.active {
+      background: rgba(59,130,246,0.18);
+      border-color: rgba(59,130,246,0.55);
+    }
+    .region-code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #c7d2fe;
+      background: rgba(99,102,241,0.18);
+      border: 1px solid rgba(99,102,241,0.35);
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-align: center;
+      letter-spacing: 0.02em;
+    }
+    .region-name {
+      color: #e2e8f0;
+      font-size: 0.88rem;
+      line-height: 1.3;
+    }
+    .region-name small {
+      display: block;
+      color: #94a3b8;
+      font-size: 0.74rem;
+      margin-top: 1px;
+    }
+    .region-load {
+      font-size: 0.72rem;
+      color: #94a3b8;
+      white-space: nowrap;
+    }
+
+    /* Recent predictions */
+    .history {
+      margin-top: 20px;
+      border-top: 1px dashed #e2e8f0;
+      padding-top: 16px;
+    }
+    .history-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .history-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+      color: var(--text-soft);
+    }
+    .history-clear {
+      background: transparent;
+      border: none;
+      color: var(--text-soft);
+      font-size: 0.78rem;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 6px;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .history-clear:hover { background: var(--surface-alt); color: var(--text); }
+    .history.empty { display: none; }
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .history-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      background: var(--surface-alt);
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 0.85rem;
+    }
+    .history-row .h-meta {
+      color: var(--text-muted);
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .history-row .h-code {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .history-row .h-val {
+      font-weight: 800;
+      color: var(--accent-hover);
+      white-space: nowrap;
+    }
+
+    /* Footer */
+    footer.site {
+      border-top: 1px solid rgba(148, 163, 184, 0.14);
+      padding: 26px 0 40px;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 0.88rem;
+    }
+    footer.site .muted { color: #64748b; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .model-grid { grid-template-columns: 1fr; }
+      .hero-stats { grid-template-columns: 1fr; }
+      .predict-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .form-card { padding: 24px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      header.hero { padding: 60px 0 70px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="top">
+    <div class="inner">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">⚡</div>
+        <span>SparkEnergy</span>
+      </div>
+      <div class="nav-links">
+        <a href="#how">How it works</a>
+        <a href="#model">Model</a>
+        <a href="#impact">Why it matters</a>
+        <a href="#predict">Predict</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="container">
+      <span class="pill">Apache Spark ML · Gradient Boosted Trees</span>
+      <h1>Smart Energy Consumption Predictor</h1>
+      <p class="lead">
+        Predict regional electricity demand using Apache Spark ML models trained on
+        real-world energy datasets. Enter the time and region — get an instant MW forecast
+        from a distributed pipeline.
+      </p>
+      <div class="cta-row">
+        <a href="#predict" class="btn btn-primary" id="startBtn">
+          Start Prediction
+          <span aria-hidden="true">→</span>
+        </a>
+        <a href="#how" class="btn btn-ghost">How it works</a>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat"><div class="k">11</div><div class="v">PJM sub-regions supported</div></div>
+        <div class="stat"><div class="k">~0.96+</div><div class="v">R² on held-out data</div></div>
+        <div class="stat"><div class="k">Spark ML</div><div class="v">Distributed inference</div></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- HOW IT WORKS -->
+  <section id="how">
+    <div class="container">
+      <div class="section-head">
+        <div class="eyebrow">How it works</div>
+        <h2>From raw grid data to a real-time MW forecast</h2>
+        <p>An end-to-end Big Data pipeline: ingest PJM hourly loads, engineer temporal and
+          regional features on a Spark cluster, train a Gradient Boosted Trees regressor
+          with Spark ML, and serve low-latency predictions through a Flask REST API.</p>
+      </div>
+
+      <div class="pipeline" aria-label="End-to-end prediction pipeline">
+        <span class="node">Data</span>
+        <span class="arrow" aria-hidden="true">→</span>
+        <span class="node">Spark Processing</span>
+        <span class="arrow" aria-hidden="true">→</span>
+        <span class="node">Feature Engineering</span>
+        <span class="arrow" aria-hidden="true">→</span>
+        <span class="node">ML Model</span>
+        <span class="arrow" aria-hidden="true">→</span>
+        <span class="node">Flask API</span>
+        <span class="arrow" aria-hidden="true">→</span>
+        <span class="node">Web UI</span>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="icon">01</div>
+          <h3>Data Source</h3>
+          <p>PJM Interconnection hourly load data across 11 regional grids (PJME, PJMW, AEP, DOM, COMED…).</p>
+        </div>
+        <div class="step">
+          <div class="icon">02</div>
+          <h3>Features</h3>
+          <p>Hour (0–23), day-of-week (1–7, Monday = 1), month (1–12), and region index — vectorised with Spark ML.</p>
+        </div>
+        <div class="step">
+          <div class="icon">03</div>
+          <h3>Model</h3>
+          <p>Gradient Boosted Trees regressor trained on Spark ML — captures seasonal + diurnal demand patterns.</p>
+        </div>
+        <div class="step">
+          <div class="icon">04</div>
+          <h3>Output</h3>
+          <p>Predicted regional electricity demand (MW) generated in real time via a Flask API, powered by a Spark-trained machine learning model.</p>
+        </div>
+        <div class="step">
+          <div class="icon">05</div>
+          <h3>Why Apache Spark?</h3>
+          <p>Energy datasets span billions of hourly records across years and regions.
+            Spark parallelises ingestion, feature engineering and GBT training on distributed
+            RDD/DataFrame workloads — delivering horizontal scalability, in-memory compute,
+            fault tolerance and production-grade throughput that single-node Python cannot match.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODEL INFO -->
+  <section id="model">
+    <div class="container">
+      <div class="section-head">
+        <div class="eyebrow">Model</div>
+        <h2>Trained at scale, served in real time</h2>
+      </div>
+      <div class="model-grid">
+        <div class="model-card">
+          <h3>Best Model: Gradient Boosted Trees</h3>
+          <p>Ensemble of decision trees trained with Spark ML. Handles non-linear interactions
+            between time-of-day, seasonality and regional demand profiles — with strong
+            generalisation on unseen hours.</p>
+          <div class="model-chips">
+            <span class="chip">PySpark GBTRegressor</span>
+            <span class="chip">4 features</span>
+            <span class="chip">20 trees · depth 5</span>
+            <span class="chip">VectorAssembler</span>
+          </div>
+        </div>
+        <div class="metrics">
+          <div class="metric"><span class="label">Algorithm</span><span class="value">Gradient Boosted Trees</span></div>
+          <div class="metric"><span class="label">R² Score</span><span class="value">~0.96+</span></div>
+          <div class="metric"><span class="label">Powered by</span><span class="value">Apache Spark</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY THIS MATTERS -->
+  <section id="impact">
+    <div class="container">
+      <div class="section-head">
+        <div class="eyebrow">Why this matters</div>
+        <h2>From a grid forecast to real-world impact</h2>
+        <p>Accurate short-horizon load prediction underpins nearly every lever utilities
+          have for reliability, cost and decarbonisation. A Big Data pipeline like this one
+          turns petabytes of raw telemetry into operational decisions.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="icon">01</div>
+          <h3>Energy Demand Forecasting</h3>
+          <p>Gives utilities hour-ahead visibility into regional load so generators can be
+            dispatched, ramp rates optimised and reserve margins sized to actual demand —
+            not worst-case estimates.</p>
+        </div>
+        <div class="step">
+          <div class="icon">02</div>
+          <h3>Grid Stability &amp; Load Balancing</h3>
+          <p>Reliable MW forecasts let system operators pre-position spinning reserves,
+            balance inter-zonal transfers and prevent frequency excursions during peak events
+            or renewable intermittency.</p>
+        </div>
+        <div class="step">
+          <div class="icon">03</div>
+          <h3>Cost Optimization</h3>
+          <p>Reducing over-generation and expensive peaking-plant activations translates
+            directly into lower wholesale prices, fewer emergency procurement contracts
+            and smaller ancillary-service bills.</p>
+        </div>
+        <div class="step">
+          <div class="icon">04</div>
+          <h3>Smart Energy Management</h3>
+          <p>Feeds demand-response platforms, battery-storage dispatch and EV-charging
+            schedulers — enabling data-driven decarbonisation and truly intelligent grid
+            management.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PREDICTION FORM -->
+  <section id="predict">
+    <div class="container">
+      <div class="section-head">
+        <div class="eyebrow">Try it</div>
+        <h2>Run a live prediction</h2>
+        <p>Pick an hour, day of week, month and region. The API returns the predicted
+          grid load in megawatts.</p>
+      </div>
+
+      <div class="predict-grid">
+        <main class="form-card" aria-label="Energy prediction form">
+          <h2>Energy prediction</h2>
+          <p class="desc">
+            Ranges: hour 0–23, day 1–7 (Mon–Sun), month 1–12. Region from PJM sub-grids.
+          </p>
+
+          <div class="presets" aria-label="Quick presets">
+            <span class="presets-label">Presets</span>
+            <button type="button" class="preset-chip" data-preset="weekday-morning">Weekday morning</button>
+            <button type="button" class="preset-chip" data-preset="weekday-peak">Weekday evening peak</button>
+            <button type="button" class="preset-chip" data-preset="weekend-noon">Weekend noon</button>
+            <button type="button" class="preset-chip" data-preset="summer-peak">Summer afternoon</button>
+            <button type="button" class="preset-chip" data-preset="winter-night">Winter night</button>
+          </div>
+
+          <form id="predictForm" novalidate>
+            <div class="form-grid">
+              <div class="field">
+                <input id="hour" name="hour" type="number" min="0" max="23" placeholder=" " required>
+                <label for="hour">Hour (0–23)</label>
+                <div class="hint">24-hour format.</div>
+              </div>
+
+              <div class="field">
+                <input id="day" name="day" type="number" min="1" max="7" placeholder=" " required>
+                <label for="day">Day (1–7)</label>
+                <div class="hint">1 = Monday, 7 = Sunday.</div>
+              </div>
+
+              <div class="field">
+                <input id="month" name="month" type="number" min="1" max="12" placeholder=" " required>
+                <label for="month">Month (1–12)</label>
+                <div class="hint">Numeric month.</div>
+              </div>
+
+              <div class="field">
+                <select id="region" name="region" class="is-placeholder" required>
+                  <option value="" disabled selected>— Select a region —</option>
+                  <option value="PJME">PJME &nbsp;·&nbsp; PJM East</option>
+                  <option value="PJMW">PJMW &nbsp;·&nbsp; PJM West</option>
+                  <option value="AEP">AEP &nbsp;·&nbsp; American Electric Power</option>
+                  <option value="COMED">COMED &nbsp;·&nbsp; Commonwealth Edison</option>
+                  <option value="DAYTON">DAYTON &nbsp;·&nbsp; Dayton Power &amp; Light</option>
+                  <option value="DEOK">DEOK &nbsp;·&nbsp; Duke Energy Ohio/Kentucky</option>
+                  <option value="DOM">DOM &nbsp;·&nbsp; Dominion Energy Virginia</option>
+                  <option value="DUQ">DUQ &nbsp;·&nbsp; Duquesne Light</option>
+                  <option value="EKPC">EKPC &nbsp;·&nbsp; East Kentucky Power Coop.</option>
+                  <option value="FE">FE &nbsp;·&nbsp; FirstEnergy</option>
+                  <option value="NI">NI &nbsp;·&nbsp; Northern Illinois Hub</option>
+                </select>
+                <label for="region">Region</label>
+                <div class="hint">Pick the PJM service area.</div>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button id="predictBtn" type="submit" class="btn btn-primary">
+                Predict
+                <span aria-hidden="true">⚡</span>
+              </button>
+              <button id="resetBtn" type="button" class="reset-btn">Reset</button>
+              <span id="loader" class="loader" aria-hidden="true"></span>
+            </div>
+          </form>
+
+          <div id="message" class="message" role="status" aria-live="polite"></div>
+
+          <div id="history" class="history empty" aria-label="Recent predictions">
+            <div class="history-head">
+              <span class="history-title">Recent predictions</span>
+              <button type="button" id="historyClear" class="history-clear">Clear</button>
+            </div>
+            <div id="historyList" class="history-list"></div>
+          </div>
+        </main>
+
+        <aside class="side-card" aria-label="PJM region reference">
+          <h3>PJM region reference</h3>
+          <p class="side-sub">
+            All 11 sub-regions used by the model — click a row to preselect it in the form.
+          </p>
+          <div id="regionsList" class="regions-list" role="list">
+            <!-- populated by JS -->
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODEL DETAILS -->
+  <section id="details">
+    <div class="container">
+      <div class="section-head">
+        <div class="eyebrow">Model details</div>
+        <h2>Under the hood</h2>
+        <p>A concise technical summary of the algorithm, feature set and training data
+          that produce every prediction above.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="icon" aria-hidden="true">M</div>
+          <h3>Model</h3>
+          <p>Gradient Boosted Trees regressor (<code style="font-family:inherit;font-weight:700;">GBTRegressor</code>)
+            trained with Apache Spark ML — an ensemble of shallow decision trees that captures
+            non-linear seasonal and diurnal demand patterns.</p>
+        </div>
+        <div class="step">
+          <div class="icon" aria-hidden="true">F</div>
+          <h3>Features</h3>
+          <p>Four engineered inputs — <strong>Hour</strong> (0–23), <strong>Day</strong> of week (1–7, Monday = 1),
+            <strong>Month</strong> (1–12) and <strong>Region</strong> index — assembled into a feature vector
+            via Spark ML's <code style="font-family:inherit;font-weight:700;">VectorAssembler</code>.</p>
+        </div>
+        <div class="step">
+          <div class="icon" aria-hidden="true">D</div>
+          <h3>Training data</h3>
+          <p>Trained on the <strong>PJM Interconnection</strong> hourly energy dataset spanning
+            11 regional grids (PJME, PJMW, AEP, COMED, DOM, …). Millions of hourly load
+            observations covering multi-year seasonality.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- POWERED BY BIG DATA -->
+  <section id="bigdata">
+    <div class="container">
+      <div class="section-head">
+        <div class="eyebrow">Powered by Big Data</div>
+        <h2>Built on Apache Spark</h2>
+        <p>The same distributed engine that runs production ETL at petabyte scale also
+          powers this model's training and inference pipeline.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="icon" aria-hidden="true">⚡</div>
+          <h3>Distributed Processing</h3>
+          <p>Uses <strong>Apache Spark</strong> for distributed data processing —
+            ingestion, cleaning and feature engineering execute in parallel across
+            worker nodes via in-memory RDD/DataFrame abstractions.</p>
+        </div>
+        <div class="step">
+          <div class="icon" aria-hidden="true">∞</div>
+          <h3>Scalable Training</h3>
+          <p>Enables scalable training on large energy datasets — horizontally elastic
+            from a single laptop to a multi-node cluster without code changes, with
+            fault tolerance and production-grade throughput.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site">
+    <div class="container">
+      <div>Powered by <strong>Apache Spark ML</strong> · Served by Flask + PySpark</div>
+      <div class="muted">Data: PJM Interconnection hourly load</div>
+    </div>
+  </footer>
+
+  <script>
+    // Resolve backend URL in this priority order:
+    //   1. window.API_BASE_URL (set manually via inline <script> or DevTools)
+    //   2. <meta name="api-base-url" content="https://...">
+    //   3. ?api=<url> query string override (handy for testing)
+    //   4. localhost/127.0.0.1 → local Flask dev server on :5000
+    //   5. production fallback: same origin as the page
+    const API_URL = (() => {
+      const metaEl = document.querySelector('meta[name="api-base-url"]');
+      const queryBase = new URLSearchParams(window.location.search).get("api");
+      const host = window.location.hostname;
+      const isLocal = host === "localhost" || host === "127.0.0.1" || host === "";
+
+      let base =
+        (typeof window.API_BASE_URL === "string" && window.API_BASE_URL) ||
+        (metaEl && metaEl.content) ||
+        queryBase ||
+        (isLocal ? "http://127.0.0.1:5000" : window.location.origin);
+
+      base = base.replace(/\/+$/, "");
+      return base + "/predict";
+    })();
+
+    const form = document.getElementById("predictForm");
+    const predictBtn = document.getElementById("predictBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const loader = document.getElementById("loader");
+    const messageBox = document.getElementById("message");
+
+    const hourInput = document.getElementById("hour");
+    const dayInput = document.getElementById("day");
+    const monthInput = document.getElementById("month");
+    const regionInput = document.getElementById("region");
+
+    const regionsListEl = document.getElementById("regionsList");
+    const historyEl = document.getElementById("history");
+    const historyListEl = document.getElementById("historyList");
+    const historyClearBtn = document.getElementById("historyClear");
+
+    // PJM region reference: code → { full name, typical daytime peak (MW) }
+    const REGIONS = [
+      { code: "PJME",   name: "PJM East",                    note: "Aggregate east zone",     load: "~30–60k MW" },
+      { code: "PJMW",   name: "PJM West",                    note: "Aggregate west zone",     load: "~5–10k MW"  },
+      { code: "AEP",    name: "American Electric Power",     note: "OH / WV / KY / VA",       load: "~15–25k MW" },
+      { code: "COMED",  name: "Commonwealth Edison",         note: "Northern Illinois",       load: "~10–22k MW" },
+      { code: "DAYTON", name: "Dayton Power & Light",        note: "Southwest Ohio",          load: "~1.5–3k MW" },
+      { code: "DEOK",   name: "Duke Energy Ohio / Kentucky", note: "Cincinnati area",         load: "~3–5k MW"   },
+      { code: "DOM",    name: "Dominion Energy Virginia",    note: "Virginia / NC",           load: "~12–22k MW" },
+      { code: "DUQ",    name: "Duquesne Light",              note: "Greater Pittsburgh",      load: "~1.5–3k MW" },
+      { code: "EKPC",   name: "East Kentucky Power Coop.",   note: "Rural Kentucky",          load: "~1–3k MW"   },
+      { code: "FE",     name: "FirstEnergy",                 note: "OH / PA / NJ",            load: "~5–10k MW"  },
+      { code: "NI",     name: "Northern Illinois Hub",       note: "Hub pricing node",        load: "~3–8k MW"   }
+    ];
+
+    // Render the reference list
+    function renderRegions() {
+      regionsListEl.innerHTML = REGIONS.map((r) => (
+        '<div class="region-row" role="listitem" data-region="' + r.code + '" tabindex="0">' +
+          '<span class="region-code">' + r.code + '</span>' +
+          '<span class="region-name">' + r.name +
+            '<small>' + r.note + '</small>' +
+          '</span>' +
+          '<span class="region-load">' + r.load + '</span>' +
+        '</div>'
+      )).join("");
+
+      regionsListEl.querySelectorAll(".region-row").forEach((row) => {
+        const pick = () => {
+          const code = row.dataset.region;
+          regionInput.value = code;
+          regionInput.classList.remove("is-placeholder", "invalid");
+          highlightActiveRegion(code);
+          regionInput.focus();
+        };
+        row.addEventListener("click", pick);
+        row.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); }
+        });
+      });
+    }
+
+    function highlightActiveRegion(code) {
+      regionsListEl.querySelectorAll(".region-row").forEach((row) => {
+        row.classList.toggle("active", row.dataset.region === code);
+      });
+    }
+
+    // --- Presets ---
+    const PRESETS = {
+      "weekday-morning": { hour: 9,  day: 3, month: 4,  region: "PJME" },
+      "weekday-peak":    { hour: 19, day: 3, month: 7,  region: "PJME" },
+      "weekend-noon":    { hour: 12, day: 6, month: 5,  region: "COMED" },
+      "summer-peak":     { hour: 16, day: 4, month: 7,  region: "AEP" },
+      "winter-night":    { hour: 22, day: 2, month: 1,  region: "DOM" }
+    };
+
+    function applyPreset(name) {
+      const p = PRESETS[name];
+      if (!p) return;
+      hourInput.value = p.hour;
+      dayInput.value = p.day;
+      monthInput.value = p.month;
+      regionInput.value = p.region;
+      regionInput.classList.remove("is-placeholder");
+      [hourInput, dayInput, monthInput, regionInput].forEach((el) => el.classList.remove("invalid"));
+      highlightActiveRegion(p.region);
+    }
+
+    document.querySelectorAll(".preset-chip").forEach((btn) => {
+      btn.addEventListener("click", () => applyPreset(btn.dataset.preset));
+    });
+
+    function showError(text) {
+      messageBox.className = "message error visible";
+      messageBox.textContent = text;
+    }
+
+    const DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const MONTH_NAMES = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    function dayName(n)   { return DAY_NAMES[n - 1]   || ("Day " + n); }
+    function monthName(n) { return MONTH_NAMES[n - 1] || ("Month " + n); }
+
+    function showSuccess(predictionNumber, context) {
+      const formatted = Number(predictionNumber).toLocaleString(undefined, {
+        maximumFractionDigits: 2
+      });
+      const meta = context
+        ? `${context.region} · ${context.hour}:00 · ${dayName(context.day)} · ${monthName(context.month)}`
+        : "";
+      messageBox.className = "message success visible";
+      messageBox.innerHTML =
+        '<span class="bolt" aria-hidden="true">\u26A1</span>' +
+        '<div class="result-body">' +
+          '<span class="result-label">Predicted Energy Consumption</span>' +
+          '<span class="result-value">' + formatted +
+          '<span class="unit">MW</span></span>' +
+          (meta ? '<span class="result-meta">' + meta + '</span>' : '') +
+          '<p class="result-explain">' +
+            'This value represents predicted electricity demand in megawatts (MW). ' +
+            'Higher values indicate peak load conditions.' +
+          '</p>' +
+          '<span class="result-confidence">' +
+            '<span class="dot" aria-hidden="true"></span>' +
+            'Prediction confidence: High (based on historical patterns)' +
+          '</span>' +
+        '</div>';
+    }
+
+    function clearMessage() {
+      messageBox.className = "message";
+      messageBox.textContent = "";
+    }
+
+    function setLoading(isLoading) {
+      predictBtn.disabled = isLoading;
+      loader.classList.toggle("active", isLoading);
+      predictBtn.innerHTML = isLoading
+        ? 'Predicting... <span aria-hidden="true">⏳</span>'
+        : 'Predict <span aria-hidden="true">⚡</span>';
+    }
+
+    function validateRange(value, min, max) {
+      return Number.isInteger(value) && value >= min && value <= max;
+    }
+
+    function markInvalid(input, isInvalid) {
+      input.classList.toggle("invalid", isInvalid);
+    }
+
+    [hourInput, dayInput, monthInput, regionInput].forEach((el) => {
+      el.addEventListener("input", () => markInvalid(el, false));
+      el.addEventListener("change", () => markInvalid(el, false));
+    });
+
+    regionInput.addEventListener("change", () => {
+      regionInput.classList.toggle("is-placeholder", !regionInput.value);
+      highlightActiveRegion(regionInput.value);
+    });
+
+    resetBtn.addEventListener("click", () => {
+      form.reset();
+      regionInput.classList.add("is-placeholder");
+      highlightActiveRegion("");
+      [hourInput, dayInput, monthInput, regionInput].forEach((el) => markInvalid(el, false));
+      clearMessage();
+      hourInput.focus();
+    });
+
+    // --- Recent predictions (session only) ---
+    const HISTORY_MAX = 5;
+    const history = [];
+
+    function renderHistory() {
+      if (!history.length) {
+        historyEl.classList.add("empty");
+        historyListEl.innerHTML = "";
+        return;
+      }
+      historyEl.classList.remove("empty");
+      historyListEl.innerHTML = history.map((h) => (
+        '<div class="history-row">' +
+          '<div class="h-meta">' +
+            '<span class="h-code">' + h.region + '</span>' +
+            '<span>' + h.hour + ':00 · ' + dayName(h.day) + ' · ' + monthName(h.month) + '</span>' +
+          '</div>' +
+          '<div class="h-val">' + h.formatted + ' MW</div>' +
+        '</div>'
+      )).join("");
+    }
+
+    function addToHistory(context, prediction) {
+      const formatted = Number(prediction).toLocaleString(undefined, { maximumFractionDigits: 2 });
+      history.unshift({ ...context, formatted });
+      if (history.length > HISTORY_MAX) history.length = HISTORY_MAX;
+      renderHistory();
+    }
+
+    historyClearBtn.addEventListener("click", () => {
+      history.length = 0;
+      renderHistory();
+    });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      clearMessage();
+      [hourInput, dayInput, monthInput, regionInput].forEach((el) => markInvalid(el, false));
+
+      const hour = Number(hourInput.value);
+      const day = Number(dayInput.value);
+      const month = Number(monthInput.value);
+      const region = regionInput.value;
+
+      if (!validateRange(hour, 0, 23)) {
+        markInvalid(hourInput, true);
+        showError("Invalid hour. Please enter a whole number between 0 and 23.");
+        hourInput.focus();
+        return;
+      }
+      if (!validateRange(day, 1, 7)) {
+        markInvalid(dayInput, true);
+        showError("Invalid day. Please enter a whole number between 1 and 7.");
+        dayInput.focus();
+        return;
+      }
+      if (!validateRange(month, 1, 12)) {
+        markInvalid(monthInput, true);
+        showError("Invalid month. Please enter a whole number between 1 and 12.");
+        monthInput.focus();
+        return;
+      }
+      if (!region) {
+        markInvalid(regionInput, true);
+        showError("Please select a region before predicting.");
+        regionInput.focus();
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ hour, day, month, region })
+        });
+
+        let data;
+        try {
+          data = await response.json();
+        } catch (parseErr) {
+          showError("Failed to fetch prediction. Is backend running?");
+          return;
+        }
+
+        if (!response.ok) {
+          const msg = data && data.error ? data.error : "Server returned " + response.status;
+          showError(msg);
+          return;
+        }
+
+        const prediction = data.prediction;
+        if (prediction === undefined || prediction === null || Number.isNaN(Number(prediction))) {
+          showError("Unexpected response: missing prediction from API.");
+          return;
+        }
+
+        showSuccess(prediction, { hour, day, month, region });
+        addToHistory({ hour, day, month, region }, prediction);
+      } catch (error) {
+        showError("Failed to fetch prediction. Is backend running?");
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    renderRegions();
+  </script>
+</body>
+</html>

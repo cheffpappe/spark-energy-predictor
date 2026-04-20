@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: spark-energy-api
+    runtime: docker
+    plan: standard
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 10000
+
+  - type: web
+    name: spark-energy-web
+    runtime: static
+    staticPublishPath: ./web
+    buildCommand: ""
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
