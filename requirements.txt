@@ -1,4 +1,2 @@
 flask>=3.0
-pyspark>=3.5,<4
-numpy>=1.26
-setuptools>=69
+gunicorn>=21.2

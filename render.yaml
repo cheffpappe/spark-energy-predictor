@@ -1,19 +1,19 @@
 services:
   - type: web
     name: spark-energy-api
-    runtime: docker
-    plan: standard
-    dockerfilePath: ./Dockerfile
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --chdir api --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 60 app:app
     healthCheckPath: /health
-    envVars:
-      - key: PORT
-        value: 10000
+    autoDeploy: true
 
   - type: web
     name: spark-energy-web
     runtime: static
     staticPublishPath: ./web
     buildCommand: ""
+    autoDeploy: true
     routes:
       - type: rewrite
         source: /*

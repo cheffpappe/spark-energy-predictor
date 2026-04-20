@@ -1,0 +1,6 @@
+# Extra deps needed only when regenerating models/predictions.json locally.
+# The deployed API does NOT need these.
+-r requirements.txt
+pyspark>=3.5,<4
+numpy>=1.26
+setuptools>=69
